@@ -1,0 +1,2 @@
+'''Goal: Build an application that you can load a spreadsheet into, view recipes, and see pairwise similarities
+in order to determine what recipes share the most ingredients. Potentially make a tree.'''
