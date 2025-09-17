@@ -1,27 +1,23 @@
 '''Goal: Build an application that you can load a spreadsheet into, view recipes, and see pairwise similarities
 in order to determine what recipes share the most ingredients. Potentially make a tree.'''
 
-# imports
 
+# imports
+import sys
 import pandas as pd
 from pandasgui import show
-from itertools import combinations, permutations
+from itertools import combinations
 import numpy as np
 import matplotlib.pyplot as plt
 
 # - GUI and Recipe viewer
 
 def main():
-    '''
     # Get file from user
     if len(sys.argv) < 2:
-        print("Usage: python HomebrewMain.py <filename>")
-        sys.exit(1)
-
-    filename = sys.argv[1]
-    '''
-
-    filename = 'Ingredience - Master List.csv'
+        filename = 'Ingredience - Master List.csv'
+    else:
+        filename = sys.argv[1]
 
     # reads provided csv file and construct a dataframe
     IngredienceDF = pd.read_csv(filename)
@@ -68,50 +64,44 @@ def main():
     We will then observe all of the values and prioritize the one with the highest similarity.
     '''
 
-    recipe_order, value = brute_force_tsp(similarity_matrix, "Amber Ale")
-    print("Optimal order: " + recipe_order + "\nValue = " + value)
+    recipe_order, value = greedy_tsp(similarity_matrix, "Amber Ale")
+    print("Optimal order: " + str(recipe_order) + "\nValue = " + str(value))
 
 
 
 ''' 
     Credit to W3schools for the TSP methods. I've modified them to find the largest value (since higher similarity means
-    more ingredients in common
+    more ingredients in common):
+    https://www.w3schools.com/dsa/dsa_ref_traveling_salesman.php
+    
+    For the more advanced algos, I plan to use this resource:
+    https://codingclutch.com/solving-the-travelling-salesman-problem-in-python-a-comprehensive-guide/#dynamic-programming-held-karp-algorithm
 '''
 
-
-def calculate_distance(route, matrix):
-    total_distance = 0
-    for i in range(len(route) - 1):
-        total_distance += matrix.loc[route[i], route[i + 1]]
-    return total_distance
-
- # Time to put my $3000 pc to use lmao
-def brute_force_tsp(similarity_matrix, start_node):
+def greedy_tsp(similarity_matrix, start_node):
     n = len(similarity_matrix)
     nodes = similarity_matrix.columns.to_list()
     nodes.remove('Amber Ale')
-    longest_route = None
-    max_distance = float('-inf')
-    for perm in permutations(nodes):
-        current_route = ['Amber Ale'] + list(perm)
-        current_distance = calculate_distance(current_route, similarity_matrix)
-        if current_distance > max_distance:
-            max_distance = current_distance
-            longest_route = current_route
+    directions = {node: False for node in nodes}
+    route = ['Amber Ale']
+    total_distance = 0
 
-    longest_route.append(0)
-    return longest_route, max_distance
+    for j in range(1, n):
+        last = route[-1]
+        nearest = None
+        max_dist = float('-inf')
+        for i in nodes:
+            if not directions[i] and similarity_matrix.loc[last, i] > max_dist:
+                max_dist = similarity_matrix.loc[last, i]
+                nearest = i
+        route.append(nearest)
+        directions[nearest] = True
+        total_distance += max_dist
+
+    return route, total_distance
 
 
-'''
-    making a plot with matplotlib.pyplot
-    
-    plt.bar(IngredienceDF['Name'], IngredienceDF['Amount'], color = 'skyblue')
-    plt.xlabel("Ingredient Name")
-    plt.ylabel("Amount")
-    plt.title("My first chart lol")
-    plt.show()
-    
+''' 
     This program was made by an ace woman for her best friend who is also a woman and also gay. 
     Computer Science was built on the backs of gay men and unrecognized women. I will never be half the people they 
     were, but if I don't acknowledge what I am then people can pretend I didn't exist when the history books write
