@@ -6,5 +6,5 @@ Currently, it needs to be run in the command line, and it will break as the file
 provided. I am working to add functionality for a text based GUI and adding custom files, but I am prioritizing the
 original purpose of the project currently.
 
-Also, it will take 20000 years to complete, so I will be back for this.
+Great news though, it no longer takes 20000 years to run. (probably)
 

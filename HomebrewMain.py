@@ -100,13 +100,5 @@ def greedy_tsp(similarity_matrix, start_node):
 
     return route, total_distance
 
-
-''' 
-    This program was made by an ace woman for her best friend who is also a woman and also gay. 
-    Computer Science was built on the backs of gay men and unrecognized women. I will never be half the people they 
-    were, but if I don't acknowledge what I am then people can pretend I didn't exist when the history books write
-    about this time, like they tried to pretend my grandmothers didn't exist. 
-'''
-
 if __name__ == "__main__":
     main()
