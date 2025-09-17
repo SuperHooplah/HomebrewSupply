@@ -26,6 +26,7 @@ def main():
     # reads provided csv file and construct a dataframe
     IngredienceDF = pd.read_csv(filename)
 
+    # TODO: DELETE THIS WHEN FINISHED
     print(IngredienceDF.head())
 
     recipes = IngredienceDF.groupby('Recipe Name')['Name'].apply(set).to_dict()
@@ -43,7 +44,10 @@ def main():
         # Jaccard similarity: |A ∩ B| / |A ∪ B|
         intersection = len(ingredients1 & ingredients2)
         union = len(ingredients1 | ingredients2)
-        similarity = intersection / union if union > 0 else 0.0 # compact if is easier to think with
+        if union > 0:
+            similarity = intersection / union
+        else:
+            similarity = 0.0
 
         similarity_matrix.loc[recipe1, recipe2] = similarity
         similarity_matrix.loc[recipe2, recipe1] = similarity
@@ -61,13 +65,12 @@ def main():
     
     My basic idea is as follows
     We start with the Amber Ale, per the instructions of my friend who I am building this for in the first place.
-    We will then observe all of the values and prioritize the one with the highest similarity (Currently, Lawn Mower)
+    We will then observe all of the values and prioritize the one with the highest similarity.
     '''
 
-'''
-    recipe_order, value = brute_force_tsp(similarity_matrix)
+    recipe_order, value = brute_force_tsp(similarity_matrix, "Amber Ale")
     print("Optimal order: " + recipe_order + "\nValue = " + value)
-'''
+
 
 
 ''' 
@@ -75,31 +78,30 @@ def main():
     more ingredients in common
 '''
 
-'''
-def calculate_distance(route, distances):
+
+def calculate_distance(route, matrix):
     total_distance = 0
     for i in range(len(route) - 1):
-        total_distance += distances.loc[route[i], route[i + 1]]
-    total_distance += distances.loc[route[-1], route[0]]
+        total_distance += matrix.loc[route[i], route[i + 1]]
     return total_distance
 
  # Time to put my $3000 pc to use lmao
-def brute_force_tsp(distances):
-    n = len(distances)
-    nodes = list(range(1, n))
+def brute_force_tsp(similarity_matrix, start_node):
+    n = len(similarity_matrix)
+    nodes = similarity_matrix.columns.to_list()
+    nodes.remove('Amber Ale')
     longest_route = None
     max_distance = float('-inf')
     for perm in permutations(nodes):
-        current_route = [0] + list(perm)
-        current_distance = calculate_distance(current_route, distances)
-
+        current_route = ['Amber Ale'] + list(perm)
+        current_distance = calculate_distance(current_route, similarity_matrix)
         if current_distance > max_distance:
             max_distance = current_distance
             longest_route = current_route
 
     longest_route.append(0)
     return longest_route, max_distance
-'''
+
 
 '''
     making a plot with matplotlib.pyplot
@@ -109,6 +111,11 @@ def brute_force_tsp(distances):
     plt.ylabel("Amount")
     plt.title("My first chart lol")
     plt.show()
+    
+    This program was made by an ace woman for her best friend who is also a woman and also gay. 
+    Computer Science was built on the backs of gay men and unrecognized women. I will never be half the people they 
+    were, but if I don't acknowledge what I am then people can pretend I didn't exist when the history books write
+    about this time, like they tried to pretend my grandmothers didn't exist. 
 '''
 
 if __name__ == "__main__":
