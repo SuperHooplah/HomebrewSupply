@@ -6,11 +6,8 @@ in order to determine what recipes share the most ingredients. Potentially make 
 import sys
 import pandas as pd
 from pandasgui import show
-from itertools import combinations
-import numpy as np
 import matplotlib.pyplot as plt
-
-# - GUI and Recipe viewer
+import Calculations.recipeCruncher as rc
 
 def main():
     # Get file from user
@@ -19,37 +16,30 @@ def main():
     else:
         filename = sys.argv[1]
 
-    # reads provided csv file and construct a dataframe
-    IngredienceDF = pd.read_csv(filename)
+    '''reads provided csv file and construct a dataframe. This script assumes the following fields in the provided
+    CSV:
+    
+    'Recipe Name': STRING - The name of the recipe
+    'Ingredient Type': STRING - The kind of ingredient in a general category (ex: Yeast, Malt, Hop)
+    'Lifespan (in Days)': INTEGER - The Lifespan of the Ingredient
+    'Name': STRING - The name of the specific ingredient (American Ale, Crystal/Caramel 80, Biscuit)
+    'Amount': INTEGER - The amount used, typically specified in the Ingredient Type field.
+    '''
+    ingredience_df = pd.read_csv(filename)
 
-    # TODO: DELETE THIS WHEN FINISHED
-    print(IngredienceDF.head())
+    ''' Creates a dictionary of recipes that list all used ingredients
+    key: String name of Recipe
+    values: list of ingredients '''
 
-    recipes = IngredienceDF.groupby('Recipe Name')['Name'].apply(set).to_dict()
-
+    recipes = ingredience_df.groupby('Recipe Name')['Name'].apply(set).to_dict()
     recipe_names = sorted(recipes.keys())
 
+    # Creates a data frame with recipe_names as both index and column
     similarity_matrix = pd.DataFrame(index=recipe_names, columns=recipe_names, dtype=float)
 
-    # Compute Jaccard similarity for each pair
-    for recipe1, recipe2 in combinations(recipe_names, 2):
-        # gets two arrays of the ingredients that make up the recipe
-        ingredients1 = recipes[recipe1]
-        ingredients2 = recipes[recipe2]
+    # Compute the Jaccard similarity between a recipe
 
-        # Jaccard similarity: |A ∩ B| / |A ∪ B|
-        intersection = len(ingredients1 & ingredients2)
-        union = len(ingredients1 | ingredients2)
-        if union > 0:
-            similarity = intersection / union
-        else:
-            similarity = 0.0
-
-        similarity_matrix.loc[recipe1, recipe2] = similarity
-        similarity_matrix.loc[recipe2, recipe1] = similarity
-
-    # Fill the diagonal with -1s (each recipe is identical to itself)
-    np.fill_diagonal(similarity_matrix.values, -1.0)
+    similarity_matrix = rc.jaccard_pairs(recipes, similarity_matrix)
 
     # open pandasgui for testing purposes.
     # show(similarity_matrix)
@@ -64,41 +54,8 @@ def main():
     We will then observe all of the values and prioritize the one with the highest similarity.
     '''
 
-    recipe_order, value = greedy_tsp(similarity_matrix, "Amber Ale")
+    recipe_order, value = rc.greedy_tsp(similarity_matrix, "Amber Ale")
     print("Optimal order: " + str(recipe_order) + "\nValue = " + str(value))
-
-
-
-''' 
-    Credit to W3schools for the TSP methods. I've modified them to find the largest value (since higher similarity means
-    more ingredients in common):
-    https://www.w3schools.com/dsa/dsa_ref_traveling_salesman.php
-    
-    For the more advanced algos, I plan to use this resource:
-    https://codingclutch.com/solving-the-travelling-salesman-problem-in-python-a-comprehensive-guide/#dynamic-programming-held-karp-algorithm
-'''
-
-def greedy_tsp(similarity_matrix, start_node):
-    n = len(similarity_matrix)
-    nodes = similarity_matrix.columns.to_list()
-    nodes.remove('Amber Ale')
-    directions = {node: False for node in nodes}
-    route = ['Amber Ale']
-    total_distance = 0
-
-    for j in range(1, n):
-        last = route[-1]
-        nearest = None
-        max_dist = float('-inf')
-        for i in nodes:
-            if not directions[i] and similarity_matrix.loc[last, i] > max_dist:
-                max_dist = similarity_matrix.loc[last, i]
-                nearest = i
-        route.append(nearest)
-        directions[nearest] = True
-        total_distance += max_dist
-
-    return route, total_distance
 
 if __name__ == "__main__":
     main()
