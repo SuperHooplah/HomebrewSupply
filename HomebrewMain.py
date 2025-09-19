@@ -31,15 +31,9 @@ def main():
     key: String name of Recipe
     values: list of ingredients '''
 
-    recipes = ingredience_df.groupby('Recipe Name')['Name'].apply(set).to_dict()
-    recipe_names = sorted(recipes.keys())
-
-    # Creates a data frame with recipe_names as both index and column
-    similarity_matrix = pd.DataFrame(index=recipe_names, columns=recipe_names, dtype=float)
-
     # Compute the Jaccard similarity between a recipe
 
-    similarity_matrix = rc.jaccard_pairs(recipes, similarity_matrix)
+    similarity_matrix = rc.weighted_jaccard_pairs(ingredience_df)
 
     # open pandasgui for testing purposes.
     # show(similarity_matrix)
